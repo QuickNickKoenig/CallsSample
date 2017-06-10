@@ -74,6 +74,7 @@ public class CallsLoader extends AsyncTaskLoader<List<Call>> {
         call.date = getLong(cursor, CallLog.Calls.DATE);
         call.duration = getLong(cursor, CallLog.Calls.DURATION);
         call.number = getString(cursor, CallLog.Calls.NUMBER);
+        call.type = getCallType(getInt(cursor, CallLog.Calls.TYPE));
         call.read = getInt(cursor, CallLog.Calls.IS_READ) != 0;
         return call;
     }
@@ -88,5 +89,24 @@ public class CallsLoader extends AsyncTaskLoader<List<Call>> {
 
     private static int getInt(Cursor cursor, String columnName) {
         return cursor.getInt(cursor.getColumnIndex(columnName));
+    }
+
+    private static Call.Type getCallType(int typeOrdinal) {
+        Call.Type type = null;
+        switch (typeOrdinal) {
+            case CallLog.Calls.INCOMING_TYPE: {
+                type = Call.Type.INCOMING;
+                break;
+            }
+            case CallLog.Calls.OUTGOING_TYPE: {
+                type = Call.Type.OUTGOING;
+                break;
+            }
+            case CallLog.Calls.MISSED_TYPE: {
+                type = Call.Type.MISSED;
+                break;
+            }
+        }
+        return type;
     }
 }

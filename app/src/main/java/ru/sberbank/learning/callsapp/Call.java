@@ -5,12 +5,16 @@ package ru.sberbank.learning.callsapp;
  */
 public class Call {
 
+    public enum Type {
+        INCOMING, OUTGOING, MISSED
+    }
+
     public long id;
     public long date;
     public long duration;
     public boolean read;
     public String number;
-    public int type;
+    public Type type;
 
     @Override
     public boolean equals(Object o) {
@@ -36,7 +40,7 @@ public class Call {
         result = 31 * result + (int) (date ^ (date >>> 32));
         result = 31 * result + (read ? 1 : 0);
         result = 31 * result + (number != null ? number.hashCode() : 0);
-        result = 31 * result + type;
+        result = 31 * result + type.ordinal();
         return result;
     }
 
