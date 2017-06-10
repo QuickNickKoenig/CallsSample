@@ -8,10 +8,13 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 
 import java.util.List;
 
 public class CallsActivity extends AppCompatActivity {
+
+    private static final String TAG = "CallsActivity";
 
     private static final int PERMISSION_REQUEST_CODE = 1;
     private static final int LOADER_ID = 1;
@@ -51,7 +54,7 @@ public class CallsActivity extends AppCompatActivity {
 
         @Override
         public void onLoadFinished(Loader<List<Call>> loader, List<Call> data) {
-
+            Log.e(TAG, "calls = "+data);
         }
 
         @Override

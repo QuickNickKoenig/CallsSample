@@ -19,6 +19,8 @@ import java.util.List;
  */
 public class CallsLoader extends AsyncTaskLoader<List<Call>> {
 
+    private static final String TAG = "CallsLoader";
+
     public CallsLoader(Context context) {
         super(context);
     }
@@ -35,10 +37,10 @@ public class CallsLoader extends AsyncTaskLoader<List<Call>> {
 
         Cursor cursor = getCallsCursor();
         if (cursor != null) {
-            DatabaseUtils.dumpCursor(cursor);
+            fillList(cursor, calls);
             cursor.close();
         } else {
-            Log.e("Loader", "cursor is null");
+            Log.e(TAG, "cursor is null");
         }
 
         return calls;
@@ -55,5 +57,36 @@ public class CallsLoader extends AsyncTaskLoader<List<Call>> {
             );
         }
         return cursor;
+    }
+
+    private static void fillList(Cursor source, List<Call> target) {
+        if (source.moveToFirst()) {
+            while (!source.isAfterLast()) {
+                target.add(createCallFromCursor(source));
+                source.moveToNext();
+            }
+        }
+    }
+
+    private static Call createCallFromCursor(Cursor cursor) {
+        Call call = new Call();
+        call.id = getLong(cursor, CallLog.Calls._ID);
+        call.date = getLong(cursor, CallLog.Calls.DATE);
+        call.duration = getLong(cursor, CallLog.Calls.DURATION);
+        call.number = getString(cursor, CallLog.Calls.NUMBER);
+        call.read = getInt(cursor, CallLog.Calls.IS_READ) != 0;
+        return call;
+    }
+
+    private static long getLong(Cursor cursor, String columnName) {
+        return cursor.getLong(cursor.getColumnIndex(columnName));
+    }
+
+    private static String getString(Cursor cursor, String columnName) {
+        return cursor.getString(cursor.getColumnIndex(columnName));
+    }
+
+    private static int getInt(Cursor cursor, String columnName) {
+        return cursor.getInt(cursor.getColumnIndex(columnName));
     }
 }

@@ -6,8 +6,8 @@ package ru.sberbank.learning.callsapp;
 public class Call {
 
     public long id;
-    public int duration;
     public long date;
+    public long duration;
     public boolean read;
     public String number;
     public int type;
@@ -32,11 +32,24 @@ public class Call {
     @Override
     public int hashCode() {
         int result = (int) (id ^ (id >>> 32));
-        result = 31 * result + duration;
+        result = 31 * result + (int) (duration ^ (duration >>> 32));
         result = 31 * result + (int) (date ^ (date >>> 32));
         result = 31 * result + (read ? 1 : 0);
         result = 31 * result + (number != null ? number.hashCode() : 0);
         result = 31 * result + type;
         return result;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Call{");
+        sb.append("id=").append(id);
+        sb.append(", duration=").append(duration);
+        sb.append(", date=").append(date);
+        sb.append(", read=").append(read);
+        sb.append(", number='").append(number).append('\'');
+        sb.append(", type=").append(type);
+        sb.append('}');
+        return sb.toString();
     }
 }
