@@ -29,7 +29,13 @@ public class CallsActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        checkCallLogPermission();
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (ActivityCompat.checkSelfPermission(this,
+                    Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
+                getSupportLoaderManager().initLoader(LOADER_ID, null,
+                        new CallsLoaderCallbacks());
+            }
+        }
     }
 
     private void checkCallLogPermission() {
