@@ -4,8 +4,11 @@ import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.database.ContentObserver;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
+import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.CallLog;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.AsyncTaskLoader;
@@ -21,8 +24,15 @@ public class CallsLoader extends AsyncTaskLoader<List<Call>> {
 
     private static final String TAG = "CallsLoader";
 
+    private final CallsContentObserver mCallsObserver;
+
     public CallsLoader(Context context) {
         super(context);
+        mCallsObserver = new CallsContentObserver();
+        context.getContentResolver().registerContentObserver(
+                CallLog.Calls.CONTENT_URI,
+                false, mCallsObserver
+        );
     }
 
     @Override
@@ -32,12 +42,18 @@ public class CallsLoader extends AsyncTaskLoader<List<Call>> {
     }
 
     @Override
+    protected void onReset() {
+        super.onReset();
+        getContext().getContentResolver().unregisterContentObserver(mCallsObserver);
+    }
+
+    @Override
     public List<Call> loadInBackground() {
         List<Call> calls = new ArrayList<>();
 
         Cursor cursor = getCallsCursor();
         if (cursor != null) {
-            fillList(cursor, calls);
+            CallInflater.fillList(cursor, calls);
             cursor.close();
         } else {
             Log.e(TAG, "cursor is null");
@@ -59,54 +75,15 @@ public class CallsLoader extends AsyncTaskLoader<List<Call>> {
         return cursor;
     }
 
-    private static void fillList(Cursor source, List<Call> target) {
-        if (source.moveToFirst()) {
-            while (!source.isAfterLast()) {
-                target.add(createCallFromCursor(source));
-                source.moveToNext();
-            }
+    private class CallsContentObserver extends ContentObserver {
+
+        public CallsContentObserver() {
+            super(new Handler(Looper.getMainLooper()));
         }
-    }
 
-    private static Call createCallFromCursor(Cursor cursor) {
-        Call call = new Call();
-        call.id = getLong(cursor, CallLog.Calls._ID);
-        call.date = getLong(cursor, CallLog.Calls.DATE);
-        call.duration = getLong(cursor, CallLog.Calls.DURATION);
-        call.number = getString(cursor, CallLog.Calls.NUMBER);
-        call.type = getCallType(getInt(cursor, CallLog.Calls.TYPE));
-        call.read = getInt(cursor, CallLog.Calls.IS_READ) != 0;
-        return call;
-    }
-
-    private static long getLong(Cursor cursor, String columnName) {
-        return cursor.getLong(cursor.getColumnIndex(columnName));
-    }
-
-    private static String getString(Cursor cursor, String columnName) {
-        return cursor.getString(cursor.getColumnIndex(columnName));
-    }
-
-    private static int getInt(Cursor cursor, String columnName) {
-        return cursor.getInt(cursor.getColumnIndex(columnName));
-    }
-
-    private static Call.Type getCallType(int typeOrdinal) {
-        Call.Type type = null;
-        switch (typeOrdinal) {
-            case CallLog.Calls.INCOMING_TYPE: {
-                type = Call.Type.INCOMING;
-                break;
-            }
-            case CallLog.Calls.OUTGOING_TYPE: {
-                type = Call.Type.OUTGOING;
-                break;
-            }
-            case CallLog.Calls.MISSED_TYPE: {
-                type = Call.Type.MISSED;
-                break;
-            }
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            onContentChanged();
         }
-        return type;
     }
 }
