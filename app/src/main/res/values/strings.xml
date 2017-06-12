@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">CallsApp</string>
+    <string name="duration_format" formatted="false">%02d:%02d:%02d</string>
 </resources>
